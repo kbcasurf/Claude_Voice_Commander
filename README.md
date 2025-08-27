@@ -1,38 +1,37 @@
 # Claude Voice Commander 🎤
 
-A voice automation system that allows hands-free operation of Claude Code CLI through speech commands. Speak naturally and control Claude without touching your keyboard!
+A voice automation system that allows hands-free operation of Claude Code CLI through speech commands. Uses local Whisper for speech recognition and targets any terminal window through focus-based control.
 
 ## Features
 
-- 🎤 **Real-time Voice Recognition** - Uses local Whisper with faster-whisper for instant speech-to-text
-- ⚡ **Live Text Display** - Words appear on screen as you speak, like typing in real-time
-- ⌨️ **Direct CLI Integration** - Simulates keyboard input to the actual Claude CLI terminal
-- 🎯 **Smart Command Processing** - Converts natural speech to Claude commands
-- 🔧 **Mode Control** - Switch between plan mode, auto mode, and interactive mode with voice
-- 🔢 **Option Selection** - Select numbered options by speaking "option one", "select two", etc.
-- ✅ **Confirmation Handling** - Say "yes", "no", "accept", or "cancel" for confirmations
-- 👀 **Visual Feedback** - See exactly what's happening with the Claude CLI interface
-- 🚀 **Ultra-Low Latency** - Local processing with streaming recognition
+- 🎤 **Local Voice Recognition** - Uses faster-whisper for offline speech-to-text processing
+- 🎯 **Universal Terminal Control** - Works with any focused terminal window using xdotool
+- 📝 **Smart Text Accumulation** - Speak your request in parts, combine with finalization keywords
+- 🔧 **Claude CLI Mode Control** - Voice commands for plan/auto/interactive modes
+- 🔢 **Quick Option Selection** - Say "option one" through "option five" for numbered choices
+- ✅ **Voice Confirmations** - "yes"/"no" responses for Claude prompts
+- 🖥️ **Window Targeting** - 10-second countdown to capture your target terminal
 - 🔇 **No API Dependencies** - Completely offline speech recognition
+- ⚡ **Direct Keyboard Simulation** - Sends actual keystrokes to focused applications
 
 ## Architecture
 
 The system works by:
-1. Capturing audio from your microphone in real-time
-2. Converting speech to text using Whisper
-3. Processing voice commands and mapping them to Claude CLI actions
-4. Sending keystrokes directly to the Claude CLI terminal process
-5. Providing visual and audio feedback
+1. Capturing audio from your microphone 
+2. Converting speech to text using local Whisper
+3. Processing voice commands with intelligent text accumulation
+4. Targeting any terminal window through xdotool focus capture
+5. Sending keyboard input directly to the targeted application
 
-This approach preserves the full Claude CLI experience while adding voice control on top.
+This approach works with any terminal application, preserving native functionality while adding voice control.
 
 ## Installation
 
 ### Prerequisites
 - Python 3.8 or higher
-- Claude Code CLI installed and accessible
+- Claude Code CLI installed and accessible in your target terminal
 - Microphone access
-- Operating system: Linux, macOS, or Windows
+- Linux system with xdotool installed (`sudo apt install xdotool`)
 
 ### Install Dependencies
 ```bash
@@ -42,18 +41,17 @@ pip install -r requirements.txt
 ### Configuration
 The system uses local Whisper by default - **no API keys needed!**
 
-**Optimized for CPU-only systems:**
-
-1. **Model size options (tiny is default for speed):**
+**Whisper model options (tiny is default for speed):**
 ```bash
 export WHISPER_MODEL_SIZE=tiny    # Fastest, still accurate
-export WHISPER_MODEL_SIZE=base    # Better accuracy, slower
+export WHISPER_MODEL_SIZE=base    # Better accuracy, slower  
 export WHISPER_MODEL_SIZE=small   # Even better accuracy
 ```
 
-2. **Optional: Audio device selection:**
+**Optional settings:**
 ```bash
 export AUDIO_DEVICE_INDEX=0  # Specific microphone device
+export DEBUG_MODE=true       # Enable detailed logging
 ```
 
 ## Usage
@@ -64,59 +62,24 @@ python main.py
 ```
 
 The system will:
-1. Start Claude CLI in a new terminal session
-2. Begin listening for voice commands
-3. Display status information and feedback
+1. Give you 5 seconds to focus on your target terminal (where Claude CLI is running)
+2. Capture the focused window for keyboard input targeting
+3. Begin listening for voice commands
 
 ### Voice Commands
 
-#### Mode Switching
-- "Plan mode" - Switch to planning mode
-- "Auto mode" / "Auto accept" - Switch to automatic mode  
-- "Interactive mode" / "Ask before apply" - Switch to interactive mode
+**See COMMAND.md for complete operational reference**
 
-#### Option Selection
-- "Option one" / "Select one" - Select option 1
-- "Option two" / "Select two" - Select option 2
-- etc.
-
-#### Confirmations
-- "Yes" / "Accept" / "Confirm" - Confirm action
-- "No" / "Cancel" / "Reject" - Cancel action
-
-#### File Operations
-- "Open file example.py"
-- "Create new file main.js"
-- "Show directory contents"
-
-#### Code Operations
-- "Run the tests"
-- "Build the project"
-- "Debug this function"
-
-#### Search Operations
-- "Search for function getName"
-- "Find all TODO comments"
-
-#### Git Operations
-- "Git status"
-- "Git commit with message added new feature"
-- "Git push changes"
-
-#### General Queries
-- "Explain this code"
-- "How does this function work?"
-- "What are the available commands?"
 
 ## Configuration
 
-The system can be configured through environment variables or a config file:
+The system can be configured through environment variables:
 
 ### Environment Variables
-- `OPENAI_API_KEY` - OpenAI API key for Whisper
-- `WHISPER_USE_LOCAL` - Use local Whisper model (true/false)
-- `WHISPER_MODEL` - Local model size (base, small, medium, large)
-- `CLAUDE_CLI_PATH` - Path to Claude CLI executable
+- `WHISPER_MODEL_SIZE` - Model size (tiny, base, small, medium, large)
+- `WHISPER_DEVICE` - Processing device (cpu, cuda, auto)
+- `WHISPER_COMPUTE_TYPE` - Computation type (int8, float16, float32)
+- `AUDIO_DEVICE_INDEX` - Specific microphone device index
 - `LOG_LEVEL` - Logging level (DEBUG, INFO, WARNING, ERROR)
 - `DEBUG_MODE` - Enable debug mode (true/false)
 
@@ -145,18 +108,13 @@ Create `voice_commander.config` for persistent settings (JSON format):
 ```
 src/
 ├── __init__.py
-├── config.py              # Configuration management
-├── voice_commander.py     # Main orchestrator
-├── audio_capture.py       # Real-time audio capture
-├── speech_to_text.py      # Whisper integration
-├── command_processor.py   # Command parsing and intent recognition
-├── terminal_controller.py # Claude CLI interaction
-└── feedback_system.py     # User feedback
-```
-
-### Running Tests
-```bash
-pytest tests/
+├── config.py                     # Configuration management
+├── voice_commander.py            # Main orchestrator
+├── audio_capture.py              # Real-time audio capture  
+├── speech_to_text.py             # Whisper integration
+├── command_processor.py          # Command parsing and text accumulation
+├── universal_terminal_controller.py # xdotool-based terminal control
+└── feedback_system.py            # User feedback
 ```
 
 ### Development Installation
@@ -171,21 +129,22 @@ pip install -e .
 **Audio not being captured:**
 - Check microphone permissions
 - Verify audio device in system settings
-- Try different sample rates in config
+- Try different `AUDIO_DEVICE_INDEX` values
 
-**Claude CLI not found:**
-- Ensure Claude CLI is installed and in PATH
-- Set `CLAUDE_CLI_PATH` environment variable
+**xdotool not working:**
+- Install xdotool: `sudo apt install xdotool`
+- Verify X11 display is available
+- Check if running in Wayland (xdotool requires X11)
 
-**Whisper API errors:**
-- Verify OpenAI API key is set
-- Check internet connection
-- Consider using local Whisper model
+**Commands not reaching Claude:**
+- Ensure target terminal was properly focused during 10-second countdown
+- Check that Claude CLI is running in the captured window
+- Try recapturing window by restarting the application
 
 **Low recognition accuracy:**
-- Speak clearly and at moderate pace
+- Speak clearly at moderate pace
 - Reduce background noise
-- Adjust silence threshold in config
+- Use exact phrases from GUIDE.md for best results
 
 ### Debug Mode
 Enable debug mode for detailed logging:

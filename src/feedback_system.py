@@ -26,7 +26,7 @@ class FeedbackSystem:
         # Text concatenation state
         self.accumulated_text = ""
         self.is_accumulating = False
-        self.finalization_keywords = ["send to claude", "execute command", "process request", "submit"]
+        self.finalization_keywords = ["send this prompt", "send prompt"]
     
     async def _output_feedback(self, message: str, local_only: bool = False):
         """Output feedback to appropriate destination."""
@@ -114,36 +114,20 @@ class FeedbackSystem:
         """Show that text accumulation has started."""
         self.logger.info(f"Started accumulating: {text}")
         
-        # Send clean message to target terminal
-        if self.terminal_controller and hasattr(self.terminal_controller, 'send_feedback_message'):
-            try:
-                await self.terminal_controller.send_feedback_message(f"[ACCUMULATING] {text}")
-            except Exception as e:
-                self.logger.debug(f"Could not send accumulation start to terminal: {e}")
+        # Removed sending tags to Claude terminal - keep only in logs
     
     async def show_text_accumulated(self, new_text: str, full_text: str):
         """Show that additional text has been accumulated."""
         self.logger.info(f"Added: {new_text} | Full: {full_text}")
         
-        # Send clean update to target terminal
-        if self.terminal_controller and hasattr(self.terminal_controller, 'send_feedback_message'):
-            try:
-                await self.terminal_controller.send_feedback_message(f"[ADDED] {new_text}")
-                await self.terminal_controller.send_feedback_message(f"[FULL TEXT] {full_text}")
-            except Exception as e:
-                self.logger.debug(f"Could not send accumulation update to terminal: {e}")
+        # Removed sending tags to Claude terminal - keep only in logs
     
     async def show_finalization_ready(self, keywords: list):
         """Show available finalization keywords."""
         keywords_str = " / ".join([f'"{k}"' for k in keywords])
         self.logger.info(f"Ready to finalize. Say: {keywords_str}")
         
-        # Send clean prompt to target terminal
-        if self.terminal_controller and hasattr(self.terminal_controller, 'send_feedback_message'):
-            try:
-                await self.terminal_controller.send_feedback_message(f"[READY] Say {keywords_str} to execute")
-            except Exception as e:
-                self.logger.debug(f"Could not send finalization prompt to terminal: {e}")
+        # Removed sending ready prompt to Claude terminal - keep only in logs
     
     async def show_processing(self):
         """Show that command is being processed."""

@@ -28,41 +28,9 @@ class UniversalTerminalController:
         self.target_window_id = None
         self.current_mode = "interactive"
         self.is_target_set = False
-        self.focus_countdown = 10  # seconds to focus on target window
+        self.focus_countdown = 5  # seconds to focus on target window
         
-        # Command mappings for voice control
-        self.mode_commands = {
-            "plan mode": "/plan",
-            "planning mode": "/plan", 
-            "auto mode": "/auto",
-            "automatic mode": "/auto",
-            "auto accept": "/auto",
-            "interactive mode": "/interactive",
-            "ask mode": "/interactive",
-            "ask before apply": "/interactive"
-        }
-        
-        self.shortcuts = {
-            "option one": "1",
-            "option two": "2", 
-            "option three": "3",
-            "option four": "4",
-            "option five": "5",
-            "select one": "1",
-            "select two": "2",
-            "select three": "3", 
-            "select four": "4",
-            "select five": "5",
-            "yes": "y",
-            "no": "n",
-            "accept": "y",
-            "reject": "n",
-            "continue": "y",
-            "cancel": "n",
-            "quit": "q",
-            "exit": "q",
-            "help": "h"
-        }
+        # Removed command mappings - focusing on natural language only
     
     async def initialize(self):
         """Initialize universal terminal controller with focus capture."""
@@ -111,7 +79,7 @@ class UniversalTerminalController:
             print("\n" + "="*60)
             print("🎯 CLAUDE VOICE COMMANDER - TARGET WINDOW SETUP")
             print("="*60)
-            print("You have 10 seconds to focus on the terminal where you want")
+            print("You have 5 seconds to focus on the terminal where you want")
             print("to run Claude commands. This can be ANY terminal in ANY project.")
             print("")
             print("Instructions:")
@@ -151,7 +119,7 @@ class UniversalTerminalController:
                 
                 # Test the window
                 print("🧪 Testing window control...")
-                await self._send_to_window("# Voice Commander Connected - Test Message")
+                await self._send_to_window("Voice Commander Connected - Test Message")
                 await asyncio.sleep(0.5)
                 await self._send_key_to_window("Return")
                 
@@ -213,9 +181,7 @@ class UniversalTerminalController:
         try:
             self.logger.info(f"Executing command: '{command}'")
             
-            # Check for special voice commands first
-            if await self._handle_special_commands(command):
-                return
+            # Removed special command handling - send everything as natural language
             
             # Ensure we have a target window
             if not self.is_target_set:
@@ -236,56 +202,7 @@ class UniversalTerminalController:
             if self.on_error:
                 await self.on_error("UniversalTerminalController", e)
     
-    async def _handle_special_commands(self, command: str) -> bool:
-        """Handle special voice commands for Claude CLI control."""
-        command_lower = command.lower().strip()
-        
-        # Check for mode switching commands
-        for voice_cmd, cli_cmd in self.mode_commands.items():
-            if voice_cmd in command_lower:
-                await self._send_to_window(cli_cmd)
-                await self._send_key_to_window("Return")
-                self.current_mode = cli_cmd[1:]  # Remove the '/'
-                self.logger.info(f"Switched to {self.current_mode} mode")
-                if self.on_mode_switched:
-                    await self.on_mode_switched(self.current_mode)
-                if self.on_action_completed:
-                    await self.on_action_completed("mode_switch", True, f"Switched to {self.current_mode} mode")
-                return True
-        
-        # Check for shortcut commands  
-        for voice_cmd, key in self.shortcuts.items():
-            if command_lower == voice_cmd or command_lower.endswith(voice_cmd):
-                await self._send_key_to_window(key)
-                self.logger.info(f"Sent shortcut: {voice_cmd} -> {key}")
-                
-                # Trigger specific callbacks for different types
-                if voice_cmd.startswith(("option", "select")):
-                    if self.on_selection_made:
-                        await self.on_selection_made(key)
-                elif voice_cmd in ["yes", "no", "accept", "reject", "continue", "cancel"]:
-                    if self.on_confirmation_sent:
-                        await self.on_confirmation_sent(voice_cmd)
-                        
-                if self.on_action_completed:
-                    await self.on_action_completed("shortcut", True, f"Sent: {key}")
-                return True
-        
-        # Check for number selection (fallback)
-        if command_lower.startswith("select ") or command_lower.startswith("option "):
-            try:
-                words = command_lower.split()
-                for word in words:
-                    if word.isdigit():
-                        await self._send_key_to_window(word)
-                        self.logger.info(f"Sent number: {word}")
-                        if self.on_action_completed:
-                            await self.on_action_completed("selection", True, f"Selected: {word}")
-                        return True
-            except:
-                pass
-        
-        return False
+    # Removed _handle_special_commands method - no longer needed
     
     async def _send_to_window(self, text: str):
         """Send text to the target window using xdotool."""
@@ -346,21 +263,7 @@ class UniversalTerminalController:
             self.logger.error(f"xdotool command failed: {' '.join(args)} - {e}")
             raise
     
-    async def switch_mode(self, mode: str):
-        """Switch Claude CLI mode."""
-        mode_mapping = {
-            "plan": "/plan",
-            "auto": "/auto", 
-            "interactive": "/interactive"
-        }
-        
-        if mode in mode_mapping:
-            await self._send_to_window(mode_mapping[mode])
-            await self._send_key_to_window("Return")
-            self.current_mode = mode
-            self.logger.info(f"Switched to {mode} mode")
-        else:
-            self.logger.warning(f"Unknown mode: {mode}")
+    # Removed switch_mode method - no longer needed
     
     async def send_feedback_message(self, message: str, newline: bool = True):
         """Send a feedback message to the target terminal."""
